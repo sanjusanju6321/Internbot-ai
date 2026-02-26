@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InternBot | Intelligence Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.14.0/firebase-auth-compat.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #09090b; color: white; overflow: hidden; }
+        .glass-vault { background: rgba(15, 15, 18, 0.8); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); }
+        .input-premium { background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255,255,255,0.1); outline: none; transition: 0.3s; }
+        .input-premium:focus { border-color: #6366f1; box-shadow: 0 0 15px rgba(99, 102, 241, 0.2); }
+        #signupFields { max-height: 0; opacity: 0; overflow: hidden; transition: all 0.5s ease; }
+        #signupFields.active { max-height: 200px; opacity: 1; margin-bottom: 1rem; }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+
+    <div class="glass-vault p-10 rounded-[2.5rem] w-full max-w-[400px]">
+        <h1 class="text-3xl font-extrabold text-center mb-8 tracking-tighter">InternBot</h1>
+
+        <div class="space-y-4">
+            <div id="signupFields">
+                <div class="space-y-4">
+                    <input id="firstName" type="text" placeholder="First Name" class="input-premium w-full p-4 rounded-2xl text-sm">
+                    <input id="lastName" type="text" placeholder="Last Name" class="input-premium w-full p-4 rounded-2xl text-sm">
+                </div>
+            </div>
+            <input id="email" type="email" placeholder="Email Address" class="input-premium w-full p-4 rounded-2xl text-sm">
+            <input id="password" type="password" placeholder="Password" class="input-premium w-full p-4 rounded-2xl text-sm">
+        </div>
+
+        <button id="signInBtn" class="w-full mt-8 bg-indigo-600 p-4 rounded-2xl font-bold hover:bg-indigo-500 transition shadow-lg shadow-indigo-500/20">Secure Login</button>
+
+        <div class="flex justify-between mt-6">
+            <button id="createAccBtn" class="text-xs font-bold text-zinc-400 hover:text-white transition uppercase tracking-widest">Create Vault</button>
+            <button id="forgotPassBtn" class="text-xs font-bold text-zinc-600 hover:text-white transition uppercase tracking-widest">Forgot?</button>
+        </div>
+
+        <div class="my-8 flex items-center gap-4">
+            <div class="h-[1px] bg-white/5 flex-1"></div>
+            <span class="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">OR</span>
+            <div class="h-[1px] bg-white/5 flex-1"></div>
+        </div>
+
+        <button id="googleLogin" class="w-full bg-white/5 border border-white/10 p-4 rounded-2xl flex items-center justify-center gap-3 hover:bg-white/10 transition font-semibold text-sm">
+            <img src="https://developers.google.com/identity/images/g-logo.png" class="w-4 h-4" />
+            Continue with Google
+        </button>
+    </div>
+
+    <script>
+        // 2. CONFIG (Compat Version)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDBjoLYrityllTsILjcAAILikKX1_D-XN0",
+            authDomain: "bot-ai-8b01d.firebaseapp.com",
+            projectId: "bot-ai-8b01d",
+            storageBucket: "bot-ai-8b01d.firebasestorage.app",
+            messagingSenderId: "393192829695",
+            appId: "1:393192829695:web:4483a6134a2a9d1a81d2ca",
+            measurementId: "G-NS9X93KJ57"
+        };
+
+        // 3. INITIALIZE
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const provider = new firebase.auth.GoogleAuthProvider();
+
+        // 4. UI SELECTION
+        const signupFields = document.getElementById('signupFields');
+        const createAccBtn = document.getElementById('createAccBtn');
+        const signInBtn = document.getElementById('signInBtn');
+        const emailInput = document.getElementById('email');
+        const passInput = document.getElementById('password');
+
+        let isSignup = false;
+
+        // 5. THE "DEDICATED" CLICK HANDLERS
+        createAccBtn.onclick = function() {
+            console.log("Create Vault Clicked");
+            isSignup = !isSignup;
+            if(isSignup) {
+                signupFields.classList.add('active');
+                signInBtn.innerText = "Create Vault";
+                createAccBtn.innerText = "Back to Login";
+            } else {
+                signupFields.classList.remove('active');
+                signInBtn.innerText = "Secure Login";
+                createAccBtn.innerText = "Create Vault";
+            }
+        };
+
+        signInBtn.onclick = async function() {
+            const email = emailInput.value;
+            const pass = passInput.value;
+            
+            if(!email || !pass) return alert("Fill everything, boss!");
+
+            try {
+                if (isSignup) {
+                    const userCred = await auth.createUserWithEmailAndPassword(email, pass);
+                    const fname = document.getElementById('firstName').value;
+                    const lname = document.getElementById('lastName').value;
+                    await userCred.user.updateProfile({ displayName: fname + " " + lname });
+                    window.location.href = "indexx.html";
+                } else {
+                    await auth.signInWithEmailAndPassword(email, pass);
+                    window.location.href = "indexx.html";
+                }
+            } catch (err) {
+                alert(err.message);
+            }
+        };
+
+        document.getElementById('googleLogin').onclick = async function() {
+            try {
+                await auth.signInWithPopup(provider);
+                window.location.href = "indexx.html";
+            } catch (err) {
+                alert("Google Error: " + err.message);
+            }
+        };
+
+        document.getElementById('forgotPassBtn').onclick = async function() {
+            if(!emailInput.value) return alert("Enter email first!");
+            try {
+                await auth.sendPasswordResetEmail(emailInput.value);
+                alert("Reset link sent!");
+            } catch (err) { alert(err.message); }
+        };
+    </script>
+</body>
+</html>

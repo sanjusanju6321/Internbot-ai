@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InternBot | Career Architect</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@xenova/transformers@2.14.0"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.4.21/mammoth.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@4/dist/tesseract.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+        
+        :root {
+            --bg: #09090b;
+            --accent: #6366f1;
+            --glass: rgba(24, 24, 27, 0.7);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg);
+            color: #f4f4f5;
+            overflow: hidden;
+        }
+
+        /* Premium Glass Effects */
+        .glass-panel {
+            background: var(--glass);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        /* Animations */
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide-up { animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: #27272a; border-radius: 10px; }
+
+        /* Bot Glow */
+        .bot-message-glow {
+            border-left: 2px solid var(--accent);
+            background: linear-gradient(to right, rgba(99, 102, 241, 0.05), transparent);
+        }
+
+        .typing-dot {
+            width: 4px; height: 4px; background: #6366f1; border-radius: 50%;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+        @keyframes typing { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+    </style>
+</head>
+<body>
+
+    <div id="welcome-screen" class="fixed inset-0 z-[100] bg-black flex flex-col items-center justify-center transition-all duration-1000">
+        <div class="relative">
+            <div class="absolute inset-0 bg-indigo-500 blur-[100px] opacity-20 animate-pulse"></div>
+            <h1 class="text-6xl font-extrabold tracking-tighter text-white relative z-10">InternBot</h1>
+        </div>
+        <p class="text-zinc-500 mt-4 tracking-[0.3em] uppercase text-xs font-bold animate-pulse">Initializing Career Intelligence</p>
+    </div>
+
+    <div class="flex h-screen w-full p-4 md:p-6 gap-6 opacity-0 transition-opacity duration-700" id="main-app">
+        
+        <aside class="w-80 glass-panel rounded-[2.5rem] p-8 flex flex-col hidden lg:flex">
+            <div class="flex items-center gap-3 mb-10">
+                <div class="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center font-bold shadow-lg shadow-indigo-500/30">I</div>
+                <span class="text-xl font-bold tracking-tight">InternBot <span class="text-indigo-400 font-medium text-sm">PRO</span></span>
+            </div>
+
+            <div class="flex-1 space-y-8 overflow-y-auto">
+                <div>
+                    <h3 class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-4">BERT Knowledge Base</h3>
+                    <div id="file-vault" class="space-y-3">
+                        <div class="p-4 rounded-2xl border border-dashed border-zinc-800 text-center text-xs text-zinc-600">
+                            Drop documents to activate Semantic RAG
+                        </div>
+                    </div>
+                </div>
+
+                <div class="p-4 bg-indigo-500/5 rounded-2xl border border-indigo-500/10">
+                    <h4 class="text-xs font-bold text-indigo-300 mb-2 italic">Career Strategy</h4>
+                    <p class="text-[11px] text-zinc-400 leading-relaxed">InternBot uses local BERT embeddings to map your skills to live global job trends.</p>
+                </div>
+            </div>
+
+     <button id="resume-builder-btn" 
+        onclick="window.open('ResumeBuilder.html', '_blank')" 
+        class="w-full mt-6 p-4 rounded-2xl bg-white/5 border border-white/10 text-sm font-bold hover:bg-white/10 transition-all flex items-center justify-center gap-2">
+    ✨ AI Resume Builder
+</button>
+
+<div class="mt-auto pt-4 text-center">
+    <button onclick="if(confirm('Delete all chat history and indexed files?')){localStorage.clear(); location.reload();}" 
+            class="text-[10px] text-zinc-500 hover:text-red-400 uppercase font-bold tracking-widest transition-colors flex items-center justify-center gap-2 mx-auto">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18m-2 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+        Reset All Memory
+    </button>
+</div>
+        </aside>
+
+        <main class="flex-1 flex flex-col relative">
+            
+            <div id="chat-box" class="flex-1 overflow-y-auto space-y-8 px-4 py-6 scroll-smooth">
+                <div class="animate-slide-up max-w-2xl">
+                    <h2 class="text-5xl font-extrabold text-white tracking-tight mb-4">Where to,<br><span class="text-indigo-500">Boss?</span></h2>
+                    <p class="text-zinc-400 text-lg">I've got your resumes indexed and the job market ready. Give me a goal, and I'll find the path.</p>
+                </div>
+            </div>
+
+            <div class="max-w-4xl w-full mx-auto pb-4">
+                <div class="glass-panel rounded-[2.5rem] p-2 flex items-center shadow-2xl transition-all border-white/10 focus-within:border-indigo-500/50">
+                    
+                    <label class="p-4 hover:bg-zinc-800/50 rounded-full cursor-pointer transition flex items-center justify-center">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-zinc-400"><path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"></path></svg>
+                        <input type="file" id="file-input" class="hidden" multiple>
+                    </label>
+
+                    <button id="voice-btn" class="p-4 hover:bg-zinc-800/50 rounded-full transition flex items-center justify-center">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-zinc-400"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line><line x1="8" y1="23" x2="16" y2="23"></line></svg>
+                    </button>
+
+                    <textarea id="user-input" rows="1" class="flex-1 bg-transparent border-none outline-none p-4 text-zinc-100 placeholder-zinc-600 resize-none text-md" placeholder="Ask about jobs in Hyderabad, resume feedback..."></textarea>
+                    
+                    <button id="send-btn" class="w-12 h-12 bg-white text-black rounded-full flex items-center justify-center hover:scale-105 transition shadow-lg active:scale-95">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                    </button>
+                </div>
+                <div class="flex justify-center gap-6 mt-4">
+                   <span class="text-[10px] text-zinc-600 uppercase font-bold tracking-widest flex items-center gap-2">
+                       <span class="w-2 h-2 rounded-full bg-emerald-500" id="status-dot"></span> BERT Local Engine
+                   </span>
+                </div>
+            </div>
+        </main>
+    </div>
+
+<script>
+    // 1. CONFIG - THE BRAIN
+    // DELETE your GROQ_API_KEY line. You don't need it in the HTML anymore!
+    const API_URL = "/api/chat";
+    
+    let chatHistory = JSON.parse(localStorage.getItem('intern_elite_v2')) || [];
+    let vectorStore = [];
+    let extractor;
+    let isBusy = false;
+
+    // INITIALIZE APP
+    window.addEventListener('load', () => {
+        setTimeout(() => {
+            document.getElementById('welcome-screen').style.opacity = '0';
+            setTimeout(() => {
+                document.getElementById('welcome-screen').style.display = 'none';
+                document.getElementById('main-app').classList.replace('opacity-0', 'opacity-100');
+                loadBERT();
+            }, 1000);
+        }, 2500);
+    });
+
+    // BERT LOCAL ENGINE
+    async function loadBERT() {
+        try {
+            // Using the global 'transformers' object from the CDN
+            extractor = await transformers.pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2');
+            document.getElementById('status-dot').classList.add('shadow-[0_0_10px_#10b981]');
+            console.log("BERT Engine Ready");
+        } catch (e) { 
+            console.error("BERT Load Error", e); 
+        }
+    }
+
+    // FILE RAG SYSTEM (Handles Text & PDF)
+ document.getElementById('file-input').onchange = async (e) => {
+    const files = Array.from(e.target.files);
+    const vault = document.getElementById('file-vault');
+    
+    if (!extractor) {
+        alert("Wait a sec, boss! The BERT engine is still warming up.");
+        return;
+    }
+
+    if(vectorStore.length === 0) vault.innerHTML = '';
+    const scanningOverlay = document.createElement('div');
+    scanningOverlay.className = "text-[10px] text-indigo-400 animate-pulse font-bold uppercase p-2";
+    scanningOverlay.innerHTML = "⚡ InternBot is Analyzing...";
+    vault.prepend(scanningOverlay);
+
+    for (let file of files) {
+        try {
+            let text = "";
+            
+            // 1. HANDLE IMAGES (OCR)
+            if (file.type.startsWith('image/')) {
+                const result = await Tesseract.recognize(file, 'eng');
+                text = result.data.text;
+            } 
+            // 2. HANDLE WORD DOCS
+            else if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+                const arrayBuffer = await file.arrayBuffer();
+                const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+                text = result.value;
+            }
+            // 3. HANDLE PDFs
+            else if (file.type === "application/pdf") {
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const content = await page.getTextContent();
+                    text += content.items.map(item => item.str).join(" ") + " ";
+                }
+            } 
+            // 4. HANDLE TEXT FILES
+            else {
+                text = await file.text();
+            }
+
+            if (text.trim().length > 10) {
+                // Turn text into AI math (Vectors)
+                const chunks = text.split(/\n\n|(?=[A-Z]{2,}:)/).filter(c => c.trim().length > 15);
+                for (let chunk of chunks) {
+                    const output = await extractor(chunk.trim(), { pooling: 'mean', normalize: true });
+                    vectorStore.push({ text: chunk.trim(), vector: Object.values(output.data) });
+                }
+
+                // Show Success in UI
+                const div = document.createElement('div');
+                div.className = "p-4 bg-zinc-900 border border-indigo-500/20 rounded-2xl text-[11px] animate-slide-up flex items-center gap-3 mt-2 shadow-lg";
+                div.innerHTML = `<div class="w-2 h-2 rounded-full bg-indigo-500"></div>
+                                <span class="truncate text-zinc-300 font-medium">${file.name}</span>
+                                <span class="ml-auto text-indigo-400 font-bold uppercase text-[9px]">Learned</span>`;
+                vault.appendChild(div);
+            }
+        } catch (err) {
+            console.error("Analysis failed:", err);
+        }
+    }
+    scanningOverlay.remove();
+};
+
+    // CORE AI CHAT LOGIC
+    async function handleSend() {
+        const input = document.getElementById('user-input');
+        const query = input.value.trim();
+        if (!query || isBusy) return;
+
+        isBusy = true;
+        addMessage('user', query);
+        input.value = '';
+        
+        const botMsg = addMessage('bot', `<div class="flex gap-1 py-2"><div class="typing-dot"></div><div class="typing-dot" style="animation-delay:0.2s"></div><div class="typing-dot" style="animation-delay:0.4s"></div></div>`);
+
+        let context = "";
+        if (vectorStore.length > 0) {
+            try {
+                const qOut = await extractor(query, { pooling: 'mean', normalize: true });
+                const qVec = Object.values(qOut.data);
+                context = vectorStore
+                    .map(c => ({ text: c.text, score: qVec.reduce((a, v, i) => a + v * c.vector[i], 0) }))
+                    .sort((a,b) => b.score - a.score).slice(0, 3).map(c => c.text).join(" ");
+            } catch(e) { console.warn("RAG Search failed, using general knowledge."); }
+        }
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: { 
+                    'Authorization': `Bearer ${GROQ_API_KEY}`,
+                    'Content-Type': 'application/json' 
+                },
+                body: JSON.stringify({
+                    model: "llama-3.3-70b-versatile",
+                    messages: [
+                        { role: "system", content: `TODAY IS FEBRUARY 26, 2026. You are 'InternBot Buddy'. Blunt, witty career headhunter. Focus on 2026 tech trends. Context: ${context}` },
+                        ...chatHistory.slice(-4).map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.content })),
+                        { role: "user", content: query }
+                    ]
+                })
+            });
+
+            const data = await response.json();
+            const reply = data.choices[0].message.content;
+            botMsg.innerHTML = formatText(reply);
+            
+            // ACTION BUTTONS
+            const actionDiv = document.createElement('div');
+            actionDiv.className = "flex gap-2 mt-4 flex-wrap";
+            const searchJob = encodeURIComponent(query + " fresher jobs 2026 Bangalore");
+            actionDiv.innerHTML = `
+                <a href="https://www.linkedin.com/jobs/search/?keywords=${searchJob}" target="_blank" class="text-[10px] bg-indigo-600/20 border border-indigo-500/30 px-3 py-1 rounded-full text-indigo-400 font-bold hover:bg-indigo-600 hover:text-white transition">🔍 LinkedIn</a>
+                <a href="https://www.naukri.com/${searchJob.replace(/%20/g, '-')}" target="_blank" class="text-[10px] bg-zinc-800 border border-zinc-700 px-3 py-1 rounded-full text-zinc-400 font-bold hover:bg-zinc-700 transition">🚀 Naukri</a>
+            `;
+            botMsg.appendChild(actionDiv);
+            botMsg.classList.add('bot-message-glow');
+            
+            chatHistory.push({ role: "user", content: query }, { role: "assistant", content: reply });
+            localStorage.setItem('intern_elite_v2', JSON.stringify(chatHistory.slice(-10)));
+
+        } catch (err) {
+            botMsg.innerHTML = "Oracle offline. Check connection.";
+        } finally { isBusy = false; }
+    }
+
+    // UI HELPERS
+    function addMessage(role, text) {
+        const box = document.getElementById('chat-box');
+        const wrap = document.createElement('div');
+        wrap.className = `flex ${role === 'user' ? 'justify-end' : 'justify-start'} animate-slide-up w-full`;
+        const div = document.createElement('div');
+        div.className = `max-w-[85%] p-5 rounded-[2rem] ${role === 'user' ? 'bg-indigo-600 text-white shadow-xl' : 'bg-zinc-900 border border-zinc-800 text-zinc-300'}`;
+        div.innerHTML = text;
+        wrap.appendChild(div);
+        box.appendChild(wrap);
+        box.scrollTop = box.scrollHeight;
+        return div;
+    }
+
+    function formatText(t) {
+        return t.replace(/\*\*(.*?)\*\*/g, '<strong class="text-white">$1</strong>')
+                .replace(/\n/g, '<br>');
+    }
+
+    // EVENT LISTENERS
+    document.getElementById('send-btn').onclick = handleSend;
+    document.getElementById('user-input').onkeydown = (e) => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); }};
+    document.getElementById('voice-btn').onclick = startVoice; // Wired up!
+
+    function startVoice() {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (!SpeechRecognition) return alert("Browser not supported.");
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'en-IN';
+        recognition.onstart = () => { document.getElementById('user-input').placeholder = "Listening..."; };
+        recognition.onresult = (event) => {
+            document.getElementById('user-input').value = event.results[0][0].transcript;
+            handleSend();
+        };
+        recognition.onend = () => { document.getElementById('user-input').placeholder = "Ask InternBot..."; };
+        recognition.start();
+    }
+</script>
+
+</body>
+</html>
