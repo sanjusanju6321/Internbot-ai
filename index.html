@@ -105,10 +105,10 @@
                     const fname = document.getElementById('firstName').value;
                     const lname = document.getElementById('lastName').value;
                     await userCred.user.updateProfile({ displayName: fname + " " + lname });
-                    window.location.href = "Chat.html";
+                    window.location.href = "chat.html";
                 } else {
                     await auth.signInWithEmailAndPassword(email, pass);
-                    window.location.href = "Chat.html";
+                    window.location.href = "chat.html";
                 }
             } catch (err) {
                 alert(err.message);
@@ -118,7 +118,7 @@
         document.getElementById('googleLogin').onclick = async function() {
             try {
                 await auth.signInWithPopup(provider);
-                window.location.href = "Chat.html";
+                window.location.href = "chat.html";
             } catch (err) {
                 alert("Google Error: " + err.message);
             }
@@ -134,4 +134,5 @@
     </script>
 </body>
 </html>
+
 
