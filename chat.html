@@ -268,22 +268,25 @@
             } catch(e) { console.warn("RAG Search failed, using general knowledge."); }
         }
 
-        try {
-            const response = await fetch(API_URL, {
-                method: 'POST',
-                headers: { 
-                    'Authorization': `Bearer ${GROQ_API_KEY}`,
-                    'Content-Type': 'application/json' 
-                },
-                body: JSON.stringify({
-                    model: "llama-3.3-70b-versatile",
-                    messages: [
-                        { role: "system", content: `TODAY IS FEBRUARY 26, 2026. You are 'InternBot Buddy'. Blunt, witty career headhunter. Focus on 2026 tech trends. Context: ${context}` },
-                        ...chatHistory.slice(-4).map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.content })),
-                        { role: "user", content: query }
-                    ]
-                })
-            });
+        // --- FIX THIS PART ---
+try {
+    const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 
+            // DELETE the 'Authorization' line entirely! 
+            // The middleman (api/chat.js) already has the key.
+            'Content-Type': 'application/json' 
+        },
+        body: JSON.stringify({
+            model: "llama-3.3-70b-versatile",
+            messages: [
+                { role: "system", content: `TODAY IS FEBRUARY 26, 2026. You are 'InternBot Buddy'. Blunt, witty career headhunter. Focus on 2026 tech trends. Context: ${context}` },
+                ...chatHistory.slice(-4).map(m => ({ role: m.role === 'user' ? 'user' : 'assistant', content: m.content })),
+                { role: "user", content: query }
+            ]
+        })
+    });
+// --- END FIX ---
 
             const data = await response.json();
             const reply = data.choices[0].message.content;
@@ -349,3 +352,4 @@
 
 </body>
 </html>
+
